@@ -88,6 +88,10 @@ class App: Application() {
             AppsFlyerLib.getInstance().init(Constants.APPSFLYER_API_KEY,
                     if(prefs[Constants.IS_AF_RETRIEVED] != true) conversionDataListener else null, this@App)
             AppsFlyerLib.getInstance().start(this@App)
+
+            dataStore.edit {
+                it[Constants.HAS_VISITED_CATEGORY] = false
+            }
         }
 
         // FireBase

@@ -38,8 +38,16 @@ val Typography = Typography(
         fontFamily = FontFamily.Default,
         fontWeight = FontWeight.Normal,
         fontSize = 36.sp,
-        lineHeight = 40.sp,
-        letterSpacing = 0.sp
+        lineHeight = 41.sp,
+        letterSpacing = 0.5.sp
+    ),
+    titleSmall = TextStyle(
+        color = White,
+        fontFamily = FontFamily.Default,
+        fontWeight = FontWeight.Normal,
+        fontSize = 25.sp,
+        lineHeight = 30.sp,
+        letterSpacing = 0.5.sp
     ),
     labelSmall = TextStyle(
         color = White,

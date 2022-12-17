@@ -1,4 +1,4 @@
-package gg.onlineja.onlinecom.utils.network.convertor
+package gg.onlineja.onlinecom.utils.network.converter
 
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken

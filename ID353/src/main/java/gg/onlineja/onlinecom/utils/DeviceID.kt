@@ -135,26 +135,4 @@ object DeviceID {
         }
     }
 
-    /*
-    fun generateUrlAndTrack(
-        finproduct: FinProduct, prefs: Preferences, screen: String
-    ): String {
-        var url = finproduct.order
-        url += "&aff_sub1=" + prefs.affsub1
-        url += "&aff_sub2=" + prefs.affsub2
-        url += "&aff_sub3=" + prefs.affsub3
-        url += "&aff_sub4=" + prefs.affsub4
-        url += "&aff_sub5=" + prefs.affsub5
-
-        val eventParams: MutableMap<String, String> = HashMap()
-        eventParams["external_link"] = finproduct.itemId
-        eventParams["screen"] = screen
-        eventParams["url"] = url
-        MyTracker.trackEvent("external_link")
-        YandexMetrica.reportEvent("external_link", eventParams.toMap())
-
-        return url
-    }
-    */
-
 }

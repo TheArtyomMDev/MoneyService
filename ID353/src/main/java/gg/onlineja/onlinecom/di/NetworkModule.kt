@@ -1,17 +1,12 @@
 package gg.onlineja.onlinecom.di
 
 import android.content.Context
-import android.webkit.WebSettings
-import com.squareup.moshi.Moshi
 import gg.onlineja.onlinecom.data.APIService
 import gg.onlineja.onlinecom.data.subs.GetSubs
 import gg.onlineja.onlinecom.utils.Constants
-import gg.onlineja.onlinecom.utils.network.convertor.MyCustomConverter
-import okhttp3.Interceptor
+import gg.onlineja.onlinecom.utils.network.converter.MyCustomConverter
 import okhttp3.OkHttpClient
-import okhttp3.Response
 import okhttp3.logging.HttpLoggingInterceptor
-import org.koin.android.BuildConfig
 import org.koin.dsl.module
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory

@@ -16,6 +16,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.times
 import com.ramcosta.composedestinations.annotation.Destination
@@ -74,17 +75,17 @@ fun CardsTabsScreen(
                     .align(Alignment.BottomCenter)
             )
 
-            Column(
-                Modifier.padding(RootDimen)
-            ) {
+            Column {
                 Row(
-                    Modifier.fillMaxWidth(),
+                    Modifier
+                        .fillMaxWidth()
+                        .padding(start = RootDimen, top = RootDimen, end = RootDimen),
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
                         "Какая карта нужна?",
-                        fontSize = Typography.titleLarge.fontSize,
+                        style = Typography.titleLarge,
                         modifier = Modifier.widthIn(max = 280.dp)
                     )
                     Image(
@@ -100,112 +101,97 @@ fun CardsTabsScreen(
 
                 Spacer(Modifier.height(LargeDimen))
 
-                if (debitCards.value.isNotEmpty())
-                    Chip("Дебетовая") {
-                        navigator.navigate(DetailsScreenDestination(0, Category.Cards.Debit))
-                    }
+                Box(
+                    Modifier
+                        //.height(IntrinsicSize.Min)
+                        .fillMaxWidth()
+                        .padding(horizontal = RootDimen)
+                        .height(220.dp)
+                ) {
 
-                Spacer(Modifier.height(SmallDimen))
+                        if (debitCards.value.isNotEmpty())
+                            Chip(
+                                "Дебетовая"
+                            ) {
+                                navigator.navigate(DetailsScreenDestination(0, Category.Cards.Debit))
+                            }
 
-                if (creditCards.value.isNotEmpty())
-                    Chip("Кредитная", Modifier.align(Alignment.CenterHorizontally)) {
-                        navigator.navigate(DetailsScreenDestination(0, Category.Cards.Credit))
-                    }
+                        if (creditCards.value.isNotEmpty())
+                            Chip(
+                                "Кредитная",
+                                Modifier
+                                    .align(Alignment.TopCenter)
+                                    .offset(y = (70.dp))
+                            ) {
+                                navigator.navigate(DetailsScreenDestination(0,
+                                    Category.Cards.Credit))
+                            }
 
-                Spacer(Modifier.height(SmallDimen))
+                        if (installmentCards.value.isNotEmpty())
+                            Chip(
+                                "Рассрочка",
+                                Modifier
+                                    .align(Alignment.TopEnd)
+                                    .offset(y = (140.dp))
+                            ) {
+                                navigator.navigate(DetailsScreenDestination(0,
+                                    Category.Cards.Installment))
+                            }
 
-                if (installmentCards.value.isNotEmpty())
-                    Chip("Рассрочка", Modifier.align(Alignment.End)) {
-                        navigator.navigate(DetailsScreenDestination(0, Category.Cards.Installment))
-                    }
-
-                Spacer(Modifier.height(LargeDimen))
-
-                //with(parentScope) {
-                    Box(
-                        Modifier
-                            .fillMaxWidth()
-                            .align(Alignment.CenterHorizontally)
-                    ) {
-
-                        Image(
-                            painter = painterResource(R.drawable.cards_background),
-                            contentDescription = null,
-                            contentScale = ContentScale.FillBounds,
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(400.dp)
-                                //.wrapContentHeight(Alignment.Bottom)
-                                .align(Alignment.Center)
-                        )
-
-
-                        /*
-                    finProducts.value?.apply {
-                        Column(
-                            Modifier.padding(RootDimen)
-                        ) {
-                            Text(
-                                "Сумма",
-                                fontWeight = FontWeight.Light,
-                                style = Typography.bodySmall
-                            )
-                            Text(
-                                "$summPrefix $summMin $summMid $summMax $summPostfix",
-                                style = Typography.bodySmall
-                            )
-
-                            Spacer(Modifier.height(MediumDimen))
-
-                            Text(
-                                "Срок",
-                                fontWeight = FontWeight.Light,
-                                style = Typography.bodySmall
-                            )
-                            Text(
-                                "$percentPrefix $percent $percentPostfix",
-                                style = Typography.bodySmall
-                            )
-
-                            Spacer(Modifier.height(MediumDimen))
-
-                            Text(
-                                "Рейтинг пользователей",
-                                fontWeight = FontWeight.Light,
-                                style = Typography.bodySmall
-                            )
-
-                            RatingBar(score.toDouble().toInt())
-
-                            Spacer(Modifier.height(MediumDimen))
-
-                            Text(
-                                "Получение",
-                                fontWeight = FontWeight.Light,
-                                style = Typography.bodySmall
-                            )
-
-                            val isAvailable = listOf(show_visa, show_mastercard, show_mir, show_qiwi,  show_cash)
-                                .map { it == 1 }
-                            val pictures = listOf(
-                                R.drawable.ic_visa,
-                                R.drawable.ic_mastercard,
-                                R.drawable.ic_mir,
-                                R.drawable.ic_qiwi,
-                                R.drawable.ic_wallet
-                            ).map { painterResource(it) }
-                            AvailableCardsRow(isAvailable, pictures)
-                        }
-                    }
-
-
-                     */
-                    }
                 }
 
+                Box(
+                    Modifier
+                        .fillMaxWidth()
+                        .align(Alignment.CenterHorizontally)
+                ) {
+                    Image(
+                        painter = painterResource(R.drawable.cards_background),
+                        contentDescription = null,
+                        contentScale = ContentScale.FillBounds,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(240.dp)
+                    )
 
+                    Column(
+                        Modifier.padding(RootDimen)
+                    ) {
+                        val offers = mapOf(
+                            "Дебетовые карты" to debitCards.value,
+                            "Кредитные карты" to creditCards.value,
+                            "Рассрочка" to installmentCards.value
+                        )
+                        for (name in offers.keys) {
+                            val count = offers[name]?.size ?: 0
+                            Text(
+                                name,
+                                fontWeight = FontWeight.Light,
+                                style = Typography.bodySmall
+                            )
+                            Text(
+                                "$count ${getWord(count)}",
+                                style = Typography.bodySmall
+                            )
 
+                            Spacer(Modifier.height(MediumDimen))
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
 
+fun getWord(count: Int): String {
+    val lastDigits = count % 100
+    return when(count) {
+        0 -> "предложений"
+        in 11..20 -> "предложений"
+        else -> when(lastDigits % 10) {
+            1 -> "предложение"
+            in 2..4 -> "предложения"
+            else -> "предложений"
         }
     }
 }

@@ -13,6 +13,7 @@ import gg.onlineja.onlinecom.utils.Constants
 import com.yandex.metrica.AppMetricaDeviceIDListener
 import com.yandex.metrica.YandexMetrica
 import gg.onlineja.onlinecom.utils.DeviceID
+import gg.onlineja.onlinecom.utils.network.NetworkUtils
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -55,6 +56,11 @@ class SplashScreenViewModel(
                 }
                 "null" -> {
                     _splashScreenState.emit(SplashScreenState.Empty)
+
+                    val eventParams: MutableMap<String, String> = mutableMapOf()
+                    eventParams["GAID"] = DeviceID.getGAID(context).toString()
+                    MyTracker.trackEvent("actualbackend_null", eventParams)
+                    YandexMetrica.reportEvent("actualbackend_null", eventParams.toMap())
                 }
                 else -> {
                     val mainData = getMainData(folder)!!

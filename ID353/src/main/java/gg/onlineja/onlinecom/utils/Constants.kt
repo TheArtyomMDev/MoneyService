@@ -20,10 +20,7 @@ object Constants {
     val AF_DATA = stringPreferencesKey("AF_DATA")
     val MYTRACKER_DATA = stringPreferencesKey("MYTRACKER_DATA")
     val RESPONSE_MAIN_DATA = stringPreferencesKey("RESPONSE_MAIN_DATA")
-
-    //val IS_SUB2_EMPTY_SENT = booleanPreferencesKey("IS_SUB2_EMPTY_SENT")
-    //val IS_SUB2_AF_SENT = booleanPreferencesKey("IS_SUB2_AF_SENT")
-    //val IS_SUB2_MYTRACKER_SENT = booleanPreferencesKey("IS_SUB2_MYTRACKER_SENT")
+    val HAS_VISITED_CATEGORY = booleanPreferencesKey("HAS_VISITED_CATEGORY")
 
     val USER_TERM_HTML = stringPreferencesKey("USER_TERM_HTML")
 
@@ -32,10 +29,4 @@ object Constants {
     val AFF_SUB3 = stringPreferencesKey("AFF_SUB3")
     val AFF_SUB4 = stringPreferencesKey("AFF_SUB4")
     val AFF_SUB5 = stringPreferencesKey("AFF_SUB5")
-
-    //val PREF_WAS_ON_MAIN_SCREEN = "PREF_WAS_ON_MAIN_SCREEN"
-    //const val PREF_NAVIGATED = "NAVIGATED"
-
-    // ------
-    //const val PREF_IS_AGREEMENT_CHECKED = "IS_AGREEMENT_CHECKED "
 }

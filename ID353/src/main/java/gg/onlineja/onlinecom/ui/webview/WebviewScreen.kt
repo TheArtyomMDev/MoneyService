@@ -7,6 +7,7 @@ import android.content.Intent
 import android.graphics.Bitmap
 import android.net.Uri
 import android.os.Build
+import android.view.View
 import android.view.ViewGroup
 import android.webkit.*
 import android.widget.Toast
@@ -14,17 +15,31 @@ import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.*
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.app.ActivityCompat.shouldShowRequestPermissionRationale
 import androidx.core.content.FileProvider
 import com.ramcosta.composedestinations.annotation.Destination
 import com.ramcosta.composedestinations.annotation.RootNavGraph
+import com.ramcosta.composedestinations.navigation.DestinationsNavigator
 import gg.onlineja.onlinecom.BuildConfig
+import gg.onlineja.onlinecom.R
+import gg.onlineja.onlinecom.ui.theme.DarkBlue
+import gg.onlineja.onlinecom.ui.theme.RootDimen
+import gg.onlineja.onlinecom.ui.theme.SmallDimen
+import gg.onlineja.onlinecom.ui.theme.Typography
 import java.io.File
 
 
@@ -40,7 +55,12 @@ private fun getTmpFileUri(context: Context): Uri {
 @RootNavGraph
 @Destination
 @Composable
-fun WebView(url: String) {
+fun WebView(
+    navigator: DestinationsNavigator,
+    url: String? = null,
+    content: String? = null,
+    title: String
+) {
 
     val context = LocalContext.current
     val activity = LocalContext.current as Activity
@@ -52,7 +72,7 @@ fun WebView(url: String) {
     var backEnabled by remember { mutableStateOf(false) }
     var webView: WebView? = null
     val showDialog = remember { mutableStateOf(false) }
-
+    val showProgress = remember { mutableStateOf(false) }
 
     val getPictureFromCamera = rememberLauncherForActivityResult(ActivityResultContracts.TakePicture()) {
         if(it) {
@@ -84,17 +104,12 @@ fun WebView(url: String) {
             }
         }
 
-    @Composable
-    fun showChooserDialog() {
-        val builder = AlertDialog.Builder(context)
-        val options = arrayOf("From gallery", "From camera", "File from explorer")
-
-        if(showDialog.value) AlertDialog(
+    if(showDialog.value)
+        AlertDialog(
             onDismissRequest = {},
             title = {
                 Text("Get picture from")
             },
-
             confirmButton = {
                 Button(
                     onClick = {
@@ -136,8 +151,6 @@ fun WebView(url: String) {
                 }
             }
         )
-    }
-    showChooserDialog()
 
     val cameraPermissionForDirect =
         rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
@@ -172,7 +185,6 @@ fun WebView(url: String) {
             }
 
         }
-
         override fun onShowFileChooser(webView: WebView?, filePathCallback: ValueCallback<Array<Uri>>?, fileChooserParams: FileChooserParams?): Boolean {
             myFilePathCallback = filePathCallback
             showDialog.value = true
@@ -180,42 +192,106 @@ fun WebView(url: String) {
         }
     }
 
-    AndroidView(factory = {
-        WebView(it).apply {
-            layoutParams = ViewGroup.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT,
-                ViewGroup.LayoutParams.MATCH_PARENT
-            )
-            setDownloadListener { url, s2, s3, s4, l ->
-                println("Started downloading")
-                val i = Intent(Intent.ACTION_VIEW)
-                i.data = Uri.parse(url)
-                context.startActivity(i)
-            }
-            webViewClient = object: WebViewClient() {
-                override fun onPageStarted(view: WebView, url: String?, favicon: Bitmap?) {
-                    backEnabled = view.canGoBack()
-                }
-            }
-            webChromeClient = mWebChromeClient
-            settings.apply {
-                javaScriptEnabled = true
-                javaScriptCanOpenWindowsAutomatically = true
-                domStorageEnabled = true
-                databaseEnabled = true
-                loadWithOverviewMode = true
-                useWideViewPort = true
-                builtInZoomControls = true
-                displayZoomControls = false
-                setSupportZoom(true)
-                javaScriptCanOpenWindowsAutomatically = true
-                defaultTextEncodingName = "utf-8"
-            }
-            loadUrl(url)
+    val mWebViewClient = object : WebViewClient() {
+        override fun onPageStarted(
+            view: WebView,
+            url: String?,
+            favicon: Bitmap?
+        ) {
+            backEnabled = view.canGoBack()
+            showProgress.value = true
+            super.onPageStarted(view, url, favicon)
         }
-    }, update = {
-        webView = it
-    })
+
+        override fun onPageFinished(view: WebView?, url: String?) {
+            showProgress.value = false
+            super.onPageFinished(view, url)
+        }
+
+        override fun onReceivedError(view: WebView?, errorCode: Int, description: String?, failingUrl: String?) {
+            showProgress.value = false
+            view?.loadUrl("file:///android_asset/error.html")
+        }
+    }
+
+    Column {
+        Row(
+            Modifier
+                .fillMaxWidth()
+                .padding(start = RootDimen, top = RootDimen, end = RootDimen),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                title,
+                style = Typography.titleSmall,
+                modifier = Modifier.widthIn(max = 280.dp)
+            )
+            Image(
+                painter = painterResource(R.drawable.close_button),
+                contentDescription = null,
+                modifier = Modifier
+                    .size(25.dp)
+                    .clickable {
+                        navigator.popBackStack()
+                    }
+            )
+        }
+
+        Spacer(Modifier.height(SmallDimen))
+
+        Box(Modifier.fillMaxSize()) {
+            AndroidView(
+                factory = {
+                    WebView(it).apply {
+                        layoutParams = ViewGroup.LayoutParams(
+                            ViewGroup.LayoutParams.MATCH_PARENT,
+                            ViewGroup.LayoutParams.MATCH_PARENT
+                        )
+                        setDownloadListener { url, s2, s3, s4, l ->
+                            println("Started downloading")
+                            val i = Intent(Intent.ACTION_VIEW)
+                            i.data = Uri.parse(url)
+                            context.startActivity(i)
+                        }
+                        webViewClient = mWebViewClient
+                        webChromeClient = mWebChromeClient
+                        settings.apply {
+                            javaScriptEnabled = true
+                            javaScriptCanOpenWindowsAutomatically = true
+                            domStorageEnabled = true
+                            databaseEnabled = true
+                            loadWithOverviewMode = true
+                            useWideViewPort = true
+                            builtInZoomControls = true
+                            displayZoomControls = false
+                            setSupportZoom(true)
+                            javaScriptCanOpenWindowsAutomatically = true
+                            defaultTextEncodingName = "utf-8"
+                        }
+                        if(url != null) {
+                            loadUrl(url)
+                        }
+                        else if(content != null) {
+                            loadData(content, "text/html", "UTF-8")
+                        }
+                    }
+                },
+                update = {
+                    webView = it
+                },
+                modifier = Modifier.fillMaxSize()
+            )
+            if(showProgress.value)
+                CircularProgressIndicator(
+                    modifier = Modifier
+                        .align(Alignment.Center)
+                        .size(50.dp),
+                    color = DarkBlue
+                )
+        }
+    }
+
 
     BackHandler() {
         if(backEnabled) webView?.goBack()

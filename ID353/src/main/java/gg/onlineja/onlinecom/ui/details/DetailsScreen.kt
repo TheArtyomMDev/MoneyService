@@ -23,6 +23,8 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.datastore.core.DataStore
+import androidx.datastore.preferences.core.Preferences
 import com.bumptech.glide.integration.compose.ExperimentalGlideComposeApi
 import com.bumptech.glide.integration.compose.GlideImage
 import com.ramcosta.composedestinations.annotation.Destination
@@ -32,9 +34,12 @@ import gg.onlineja.onlinecom.R
 import gg.onlineja.onlinecom.data.FinProduct
 import gg.onlineja.onlinecom.data.repository.FinProductsRepository
 import gg.onlineja.onlinecom.ui.destinations.DetailsScreenDestination
+import gg.onlineja.onlinecom.ui.destinations.WebViewDestination
 import gg.onlineja.onlinecom.ui.details.components.AvailableCardsRow
 import gg.onlineja.onlinecom.ui.details.components.RatingBar
 import gg.onlineja.onlinecom.ui.theme.*
+import gg.onlineja.onlinecom.utils.LinkUtils
+import kotlinx.coroutines.runBlocking
 import org.koin.androidx.compose.get
 import org.koin.androidx.compose.koinViewModel
 
@@ -50,6 +55,7 @@ fun DetailsScreen(
     navArgs: DetailsScreenNavArgs,
 ) {
     val finProductsRepository: FinProductsRepository = get()
+    val dataStore: DataStore<Preferences> = get()
 
     val finProducts = remember {
         mutableStateOf(arrayOf<FinProduct>())
@@ -113,7 +119,7 @@ fun DetailsScreen(
                             contentDescription = null,
                             modifier = Modifier
                                 .matchParentSize()
-                                .offset(x = 15.dp, y = 40.dp)
+                                .offset(x = 20.dp, y = 30.dp)
                         )
 
                         with(columnScope) {
@@ -129,9 +135,21 @@ fun DetailsScreen(
                                     .height(180.dp)
                                     .border(4.dp, BrightBlue, shape = roundLarge)
                                     .align(Alignment.CenterHorizontally)
+                                    .clickable {
+                                        runBlocking {
+                                            navigator.navigate(
+                                                WebViewDestination(
+                                                    url = LinkUtils.generateUrlAndTrack(
+                                                        finProduct.value!!,
+                                                        dataStore,
+                                                        "more_details"
+                                                    ),
+                                                    title = finProduct.value?.name ?: ""
+                                                )
+                                            )
+                                        }
+                                    }
                             )
-
-
                         }
                     }
                 }
@@ -163,7 +181,18 @@ fun DetailsScreen(
                                 .height(100.dp)
                                 .align(Alignment.BottomCenter)
                                 .clickable {
-
+                                    runBlocking {
+                                        navigator.navigate(
+                                            WebViewDestination(
+                                                url = LinkUtils.generateUrlAndTrack(
+                                                    finProduct.value!!,
+                                                    dataStore,
+                                                    "more_details"
+                                                ),
+                                                title = finProduct.value?.name ?: ""
+                                            )
+                                        )
+                                    }
                                 }
                         )
                     }

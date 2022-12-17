@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package gg.onlineja.onlinecom.utils.network.convertor
+package gg.onlineja.onlinecom.utils.network.converter
 
 import com.google.gson.Gson
 import com.google.gson.TypeAdapter
