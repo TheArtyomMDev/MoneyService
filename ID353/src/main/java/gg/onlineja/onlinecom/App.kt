@@ -1,8 +1,6 @@
 package gg.onlineja.onlinecom
 
 import android.app.Application
-import android.util.Log
-import androidx.appcompat.app.AppCompatDelegate
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
@@ -21,12 +19,8 @@ import gg.onlineja.onlinecom.di.databaseModule
 import gg.onlineja.onlinecom.di.networkModule
 import gg.onlineja.onlinecom.di.viewModelsModule
 import gg.onlineja.onlinecom.utils.Constants
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.*
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
-import org.json.JSONObject
 import org.koin.android.ext.android.inject
 import org.koin.android.ext.koin.androidContext
 import org.koin.android.ext.koin.androidLogger

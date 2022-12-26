@@ -5,7 +5,6 @@ import android.content.Context
 import android.content.Intent
 import com.ramcosta.composedestinations.navigation.DestinationsNavigator
 import gg.onlineja.onlinecom.ui.destinations.NoConnectionScreenDestination
-import gg.onlineja.onlinecom.utils.DeviceID
 
 class NetworkChangeReceiver(
     private val appContext: Context,

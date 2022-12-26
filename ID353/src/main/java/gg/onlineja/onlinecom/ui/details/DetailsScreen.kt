@@ -6,7 +6,6 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.ArrowForward
@@ -22,7 +21,9 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.core.text.isDigitsOnly
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import com.bumptech.glide.integration.compose.ExperimentalGlideComposeApi
@@ -41,7 +42,6 @@ import gg.onlineja.onlinecom.ui.theme.*
 import gg.onlineja.onlinecom.utils.LinkUtils
 import kotlinx.coroutines.runBlocking
 import org.koin.androidx.compose.get
-import org.koin.androidx.compose.koinViewModel
 
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalGlideComposeApi::class)
@@ -66,9 +66,9 @@ fun DetailsScreen(
 
     LaunchedEffect(Unit) {
         finProducts.value = finProductsRepository.getFinProducts(navArgs.Category)
-        println("GOT FINPRODUCTS: ${finProducts.value.size}")
         finProduct.value = finProducts.value[navArgs.id]
     }
+
 
 
     Scaffold(
@@ -96,8 +96,10 @@ fun DetailsScreen(
                         Text(
                             finProduct.value?.name ?: "",
                             style = Typography.titleLarge,
+                            maxLines = 2,
                             modifier = Modifier
-                                .widthIn(max = 300.dp)
+                                .widthIn(max = 250.dp),
+                            overflow = TextOverflow.Ellipsis,
                         )
                         Image(
                             painter = painterResource(R.drawable.close_button),
@@ -253,39 +255,43 @@ fun DetailsScreen(
                         Column(
                             Modifier.padding(RootDimen)
                         ) {
-                            Text(
-                                "Сумма",
-                                fontWeight = FontWeight.Light,
-                                style = Typography.bodySmall
-                            )
-                            Text(
-                                "$summPrefix $summMin $summMid $summMax $summPostfix",
-                                style = Typography.bodySmall
-                            )
+                            if((summPrefix + summMin + summMid + summMax + summPostfix).isNotEmpty()) {
+                                Text(
+                                    "Сумма",
+                                    fontWeight = FontWeight.Light,
+                                    style = Typography.bodySmall
+                                )
+                                Text(
+                                    "$summPrefix $summMin $summMid $summMax $summPostfix",
+                                    style = Typography.bodySmall
+                                )
+                                Spacer(Modifier.height(MediumDimen))
+                            }
 
-                            Spacer(Modifier.height(MediumDimen))
 
-                            Text(
-                                "Срок",
-                                fontWeight = FontWeight.Light,
-                                style = Typography.bodySmall
-                            )
-                            Text(
-                                "$percentPrefix $percent $percentPostfix",
-                                style = Typography.bodySmall
-                            )
+                            if((percentPrefix + percent + percentPostfix).isNotEmpty() && hide_PercentFields != 1) {
+                                Text(
+                                    "Ставка",
+                                    fontWeight = FontWeight.Light,
+                                    style = Typography.bodySmall
+                                )
+                                Text(
+                                    "$percentPrefix $percent $percentPostfix",
+                                    style = Typography.bodySmall
+                                )
+                                Spacer(Modifier.height(MediumDimen))
+                            }
 
-                            Spacer(Modifier.height(MediumDimen))
 
-                            Text(
-                                "Рейтинг пользователей",
-                                fontWeight = FontWeight.Light,
-                                style = Typography.bodySmall
-                            )
-
-                            RatingBar(score.toDouble().toInt())
-
-                            Spacer(Modifier.height(MediumDimen))
+                            if(score.isDigitsOnly() && score.isNotEmpty()) {
+                                Text(
+                                    "Рейтинг пользователей",
+                                    fontWeight = FontWeight.Light,
+                                    style = Typography.bodySmall
+                                )
+                                RatingBar(score.toDouble().toInt())
+                                Spacer(Modifier.height(MediumDimen))
+                            }
 
                             Text(
                                 "Получение",

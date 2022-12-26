@@ -119,7 +119,8 @@ fun EnterPhoneScreen(
                     ) {
                         Text(
                             item,
-                            style = Typography.bodyMedium
+                            style = Typography.bodyMedium,
+                            color = Black
                         )
                     }
                 }

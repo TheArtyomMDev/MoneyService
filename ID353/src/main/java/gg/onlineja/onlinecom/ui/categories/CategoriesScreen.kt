@@ -1,6 +1,7 @@
 package gg.onlineja.onlinecom.ui.categories
 
 import android.annotation.SuppressLint
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -17,6 +18,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.semantics.SemanticsProperties.Text
+import androidx.compose.ui.text.input.KeyboardType.Companion.Text
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.times
 import androidx.datastore.core.DataStore
@@ -46,8 +49,7 @@ import org.koin.androidx.compose.get
 @Destination
 @Composable
 fun CategoriesScreen(
-    navigator: DestinationsNavigator,
-    responseMainData: ResponseMainData
+    navigator: DestinationsNavigator
 ) {
     val finProductsRepository: FinProductsRepository = get()
     val dataStore: DataStore<Preferences> = get()
@@ -65,7 +67,6 @@ fun CategoriesScreen(
     }
 
     LaunchedEffect(key1 = Unit) {
-        finProductsRepository.writeMainData(responseMainData)
         dataStore.edit {
             it[Constants.HAS_VISITED_CATEGORY] = true
         }
@@ -76,6 +77,8 @@ fun CategoriesScreen(
         val creditCards = finProductsRepository.getFinProducts(Category.Cards.Credit)
         val installmentCards = finProductsRepository.getFinProducts(Category.Cards.Installment)
         cards.value = debitCards + creditCards + installmentCards
+
+        println("GOT CARDS: ${cards.value.size}")
     }
 
     Scaffold(
@@ -127,21 +130,21 @@ fun CategoriesScreen(
 
                 val categories = mapOf(
                     Category.Loans to painterResource(R.drawable.loans_category),
-                    Category.Cards.Credit to painterResource(R.drawable.cards_category),
+                    Category.Cards to painterResource(R.drawable.cards_category),
                     Category.Credits to painterResource(R.drawable.credits_category),
                     Category.All to painterResource(R.drawable.all_category)
                 )
 
                 val dataByCategories = mapOf(
                     Category.Loans to loans.value,
-                    Category.Cards.Credit to cards.value,
+                    Category.Cards to cards.value,
                     Category.Credits to credits.value,
                     Category.All to loans.value + cards.value + credits.value
                 )
 
                 LazyVerticalGrid(
                     columns = GridCells.Fixed(2),
-                    userScrollEnabled = false
+                    //userScrollEnabled = false
                 ) {
                     items(categories.keys.toList().filter { dataByCategories[it]!!.isNotEmpty() }) { category ->
                         Image(
@@ -155,10 +158,10 @@ fun CategoriesScreen(
                                     when (category) {
                                         is Category.Loans, Category.All, Category.Credits -> {
                                             navigator.navigate(
-                                                DetailsScreenDestination(0, category)
+                                                DetailsScreenDestination(0, category as Category)
                                             )
                                         }
-                                        is Category.Cards -> {
+                                        is Category.Cards.Companion -> {
                                             navigator.navigate(CardsTabsScreenDestination)
                                         }
                                     }
@@ -178,4 +181,6 @@ fun CategoriesScreen(
             }
         }
     }
+
+    BackHandler(enabled = true) {}
 }

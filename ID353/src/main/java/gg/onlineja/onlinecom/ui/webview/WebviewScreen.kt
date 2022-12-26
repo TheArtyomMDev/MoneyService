@@ -4,38 +4,36 @@ import android.Manifest
 import android.app.Activity
 import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.net.Uri
 import android.os.Build
-import android.view.View
 import android.view.ViewGroup
 import android.webkit.*
 import android.widget.Toast
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.appcompat.app.AlertDialog
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.Text
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
+import androidx.core.app.ActivityCompat.checkSelfPermission
 import androidx.core.app.ActivityCompat.shouldShowRequestPermissionRationale
 import androidx.core.content.FileProvider
+import androidx.core.content.PermissionChecker
 import com.ramcosta.composedestinations.annotation.Destination
 import com.ramcosta.composedestinations.annotation.RootNavGraph
 import com.ramcosta.composedestinations.navigation.DestinationsNavigator
 import gg.onlineja.onlinecom.BuildConfig
-import gg.onlineja.onlinecom.R
 import gg.onlineja.onlinecom.ui.theme.DarkBlue
 import gg.onlineja.onlinecom.ui.theme.RootDimen
 import gg.onlineja.onlinecom.ui.theme.SmallDimen
@@ -64,11 +62,15 @@ fun WebView(
 
     val context = LocalContext.current
     val activity = LocalContext.current as Activity
-    var curRequest: PermissionRequest? = null
+    val curRequest = remember {
+        mutableStateOf<PermissionRequest?>(null)
+    }
     var myFilePathCallback by remember {
         mutableStateOf<ValueCallback<Array<Uri>>?>(null)
     }
-    var uri: Uri? = null
+    val uri = remember {
+        mutableStateOf<Uri?>(null)
+    }
     var backEnabled by remember { mutableStateOf(false) }
     var webView: WebView? = null
     val showDialog = remember { mutableStateOf(false) }
@@ -76,8 +78,8 @@ fun WebView(
 
     val getPictureFromCamera = rememberLauncherForActivityResult(ActivityResultContracts.TakePicture()) {
         if(it) {
-            if(uri != null)
-                myFilePathCallback?.onReceiveValue(arrayOf(uri!!))
+            if(uri.value != null)
+                myFilePathCallback?.onReceiveValue(arrayOf(uri.value!!))
         }
     }
 
@@ -91,8 +93,8 @@ fun WebView(
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
                 when {
                     granted -> {
-                        uri = getTmpFileUri(context)
-                        getPictureFromCamera.launch(uri)
+                        uri.value = getTmpFileUri(context)
+                        getPictureFromCamera.launch(uri.value)
                     }
                     !shouldShowRequestPermissionRationale(activity, Manifest.permission.CAMERA) -> {
                         Toast.makeText(context, "Access to camera denied", Toast.LENGTH_LONG).show()
@@ -108,7 +110,7 @@ fun WebView(
         AlertDialog(
             onDismissRequest = {},
             title = {
-                Text("Get picture from")
+                Text("Получить картинку")
             },
             confirmButton = {
                 Button(
@@ -117,7 +119,7 @@ fun WebView(
                         getImageFromGallery.launch("image/*")
                     },
                 ) {
-                    Text("From gallery")
+                    Text("С галереи")
                 }
                 Button(
                     onClick = {
@@ -126,28 +128,19 @@ fun WebView(
                             if (shouldShowRequestPermissionRationale(activity,
                                     Manifest.permission.CAMERA)
                             ) {
-                                uri = getTmpFileUri(context)
-                                println("MY URI IS : $uri")
-                                getPictureFromCamera.launch(uri)
+                                uri.value = getTmpFileUri(context)
+                                getPictureFromCamera.launch(uri.value)
                             } else {
                                 permissionForCameraApp.launch(Manifest.permission.CAMERA)
                             }
                         } else {
-                            uri = getTmpFileUri(context)
+                            uri.value = getTmpFileUri(context)
                             println("MY URI IS : $uri")
-                            getPictureFromCamera.launch(uri)
+                            getPictureFromCamera.launch(uri.value)
                         }
                     },
                 ) {
-                    Text("From camera")
-                }
-                Button(
-                    onClick = {
-                        showDialog.value = false
-                        getImageFromGallery.launch("*/*")
-                    },
-                ) {
-                    Text("File from explorer")
+                    Text("С камеры")
                 }
             }
         )
@@ -157,7 +150,8 @@ fun WebView(
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
                 when {
                     granted -> {
-                        curRequest?.grant(arrayOf(PermissionRequest.RESOURCE_VIDEO_CAPTURE))
+                        curRequest.value?.grant(arrayOf(PermissionRequest.RESOURCE_VIDEO_CAPTURE))
+                        println(curRequest)
                     }
                     !shouldShowRequestPermissionRationale(activity, Manifest.permission.CAMERA) -> {
                         Toast.makeText(context, "Access to camera denied", Toast.LENGTH_LONG).show()
@@ -171,11 +165,13 @@ fun WebView(
 
     val mWebChromeClient = object: WebChromeClient() {
         override fun onPermissionRequest(request: PermissionRequest?) {
-            curRequest = request
+            curRequest.value = request
 
             request?.resources?.forEach { r ->
                 if(r == PermissionRequest.RESOURCE_VIDEO_CAPTURE) {
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M
+                        && checkSelfPermission(context, Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED
+                    ) {
                         cameraPermissionForDirect.launch(Manifest.permission.CAMERA)
                     }
                     else {
@@ -217,24 +213,24 @@ fun WebView(
     Column {
         Row(
             Modifier
-                .fillMaxWidth()
+                .clickable {
+                    if(backEnabled) webView?.goBack()
+                    else navigator.popBackStack()
+                }
                 .padding(start = RootDimen, top = RootDimen, end = RootDimen),
-            horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
+            Icon(
+                Icons.Filled.ArrowBack,
+                contentDescription = null,
+                tint = Color.White,
+                modifier = Modifier
+                    .size(24.dp)
+            )
             Text(
-                title,
+                "Назад",
                 style = Typography.titleSmall,
                 modifier = Modifier.widthIn(max = 280.dp)
-            )
-            Image(
-                painter = painterResource(R.drawable.close_button),
-                contentDescription = null,
-                modifier = Modifier
-                    .size(25.dp)
-                    .clickable {
-                        navigator.popBackStack()
-                    }
             )
         }
 
@@ -248,7 +244,7 @@ fun WebView(
                             ViewGroup.LayoutParams.MATCH_PARENT,
                             ViewGroup.LayoutParams.MATCH_PARENT
                         )
-                        setDownloadListener { url, s2, s3, s4, l ->
+                        setDownloadListener { url, _, _, _, _ ->
                             println("Started downloading")
                             val i = Intent(Intent.ACTION_VIEW)
                             i.data = Uri.parse(url)
@@ -293,7 +289,8 @@ fun WebView(
     }
 
 
-    BackHandler() {
+    BackHandler {
         if(backEnabled) webView?.goBack()
+        else navigator.popBackStack()
     }
 }

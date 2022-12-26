@@ -31,4 +31,7 @@ data class FinProduct(
 
     val screen: String,
     val order: String,
+
+    val hide_PercentFields: Int,
+    val hide_TermFields: Int,
 ): Serializable

@@ -21,13 +21,22 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import com.ramcosta.composedestinations.DestinationsNavHost
+import com.ramcosta.composedestinations.navigation.dependency
 import gg.onlineja.onlinecom.R
+import gg.onlineja.onlinecom.ui.splash.DeepLinkArgs
+import gg.onlineja.onlinecom.ui.splash.toCategory
 import gg.onlineja.onlinecom.ui.theme.DarkBlue
 import gg.onlineja.onlinecom.ui.theme.MoneyServiceTheme
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        val link = intent.extras?.getString("link")
+        val screen = link?.split("/")?.get(0)
+        val id = link?.split("/")?.get(1)?.toInt()
+
+
         setContent {
             MoneyServiceTheme(
                 darkTheme = true,
@@ -43,7 +52,13 @@ class MainActivity : ComponentActivity() {
                     rememberSystemUiController().setStatusBarColor(
                         color = DarkBlue,
                     )
-                    DestinationsNavHost(navGraph = NavGraphs.root)
+
+                    DestinationsNavHost(
+                        navGraph = NavGraphs.root,
+                        dependenciesContainerBuilder = {
+                            dependency(DeepLinkArgs(screen?.toCategory(), id))
+                        }
+                    )
                 }
             }
         }

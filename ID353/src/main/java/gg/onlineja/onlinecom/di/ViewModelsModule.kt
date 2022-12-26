@@ -7,6 +7,6 @@ import org.koin.dsl.module
 var viewModelsModule = module {
 
     viewModel {
-        SplashScreenViewModel(get(), get(), get(), get())
+        SplashScreenViewModel(get(), get(), get(), get(), get())
     }
 }

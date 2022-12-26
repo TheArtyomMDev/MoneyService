@@ -20,38 +20,43 @@ class FinProductsRepository(
         val type = object : TypeToken<ResponseMainData>() {}.type
         val responseMainData: ResponseMainData = Gson().fromJson(data[Constants.RESPONSE_MAIN_DATA], type)
 
-        return when(category) {
-            is Category.Credits -> {
-                responseMainData.credits?: emptyArray()
-            }
-            is Category.Loans -> {
-                responseMainData.loans?: emptyArray()
-            }
-            is Category.Cards -> {
-                return try {
-                    when(category) {
-
-                        is Category.Cards.Credit -> {
-                            responseMainData.cards!![0].cards_credit ?: emptyArray()
-                        }
-                        is Category.Cards.Debit -> {
-                            responseMainData.cards!![1].cards_debit ?: emptyArray()
-                        }
-                        is Category.Cards.Installment -> {
-                            responseMainData.cards!![2].cards_installment ?: emptyArray()
-                        }
+        try {
+            return when (category) {
+                is Category.Credits -> {
+                    responseMainData.credits ?: emptyArray()
+                }
+                is Category.Loans -> {
+                    responseMainData.loans ?: emptyArray()
+                }
+                is Category.Cards -> {
+                    for (i in  responseMainData.cards!!.indices) {
+                        try {
+                            return when (category) {
+                                is Category.Cards.Credit -> {
+                                    responseMainData.cards[i].cards_credit!!
+                                }
+                                is Category.Cards.Debit -> {
+                                    responseMainData.cards[i].cards_debit!!
+                                }
+                                is Category.Cards.Installment -> {
+                                    responseMainData.cards[i].cards_installment!!
+                                }
+                            }
+                        } catch (_: Exception) { }
                     }
-                } catch (e: Exception) {
                     emptyArray()
                 }
+                is Category.All -> {
+                    getFinProducts(Category.Credits) +
+                            getFinProducts(Category.Loans) +
+                            getFinProducts(Category.Cards.Credit) +
+                            getFinProducts(Category.Cards.Debit) +
+                            getFinProducts(Category.Cards.Installment)
+                }
             }
-            is Category.All -> {
-                getFinProducts(Category.Credits) +
-                        getFinProducts(Category.Loans) +
-                        getFinProducts(Category.Cards.Credit) +
-                        getFinProducts(Category.Cards.Debit) +
-                        getFinProducts(Category.Cards.Installment)
-            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+            return emptyArray()
         }
     }
 

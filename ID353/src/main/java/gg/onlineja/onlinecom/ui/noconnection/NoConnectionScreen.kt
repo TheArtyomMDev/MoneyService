@@ -20,9 +20,7 @@ import com.ramcosta.composedestinations.annotation.RootNavGraph
 import com.ramcosta.composedestinations.navigation.DestinationsNavigator
 import gg.onlineja.onlinecom.R
 import gg.onlineja.onlinecom.ui.destinations.SplashScreenDestination
-import gg.onlineja.onlinecom.ui.splash.SplashScreen
 import gg.onlineja.onlinecom.ui.theme.MediumDimen
-import gg.onlineja.onlinecom.ui.theme.RootDimen
 import gg.onlineja.onlinecom.ui.theme.Typography
 import gg.onlineja.onlinecom.utils.Constants
 import gg.onlineja.onlinecom.utils.network.NetworkUtils

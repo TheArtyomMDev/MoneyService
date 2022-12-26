@@ -6,27 +6,30 @@ import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
 import androidx.lifecycle.ViewModel
 import com.my.tracker.MyTracker
-import gg.onlineja.onlinecom.data.APIService
-import gg.onlineja.onlinecom.data.ResponseMainData
-import gg.onlineja.onlinecom.data.subs.GetSubs
-import gg.onlineja.onlinecom.utils.Constants
 import com.yandex.metrica.AppMetricaDeviceIDListener
 import com.yandex.metrica.YandexMetrica
+import gg.onlineja.onlinecom.data.APIService
+import gg.onlineja.onlinecom.data.ResponseMainData
+import gg.onlineja.onlinecom.data.repository.FinProductsRepository
+import gg.onlineja.onlinecom.data.subs.GetSubs
+import gg.onlineja.onlinecom.utils.Constants
 import gg.onlineja.onlinecom.utils.DeviceID
-import gg.onlineja.onlinecom.utils.network.NetworkUtils
-import kotlinx.coroutines.*
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.launch
 
 
 class SplashScreenViewModel(
     private val apiService: APIService,
     private val context: Context,
     private val getSubs: GetSubs,
-    private val dataStore: DataStore<Preferences>
+    private val dataStore: DataStore<Preferences>,
+    private val finProductsRepository: FinProductsRepository
 ) : ViewModel() {
     private val _splashScreenState: MutableStateFlow<SplashScreenState> = MutableStateFlow(SplashScreenState.Loading)
     val splashScreenState = _splashScreenState.asStateFlow()
@@ -98,43 +101,55 @@ class SplashScreenViewModel(
     }
 
     private suspend fun updateSubs(AppMetricaDeviceID: String) {
+        var isSub1Sent = false
+        var isSub3Sent = false
+        var isSub4Sent = false
+        var isSub5Sent = false
+
         var isEmptySent = false
         var isAFSent = false
         var isMyTrackerSent = false
 
         dataStore.data.collect { prefs ->
-            if (prefs[Constants.AFF_SUB1].isNullOrEmpty()) {
+            if (!isSub1Sent) {
+                isSub1Sent = true
                 val sub1 = getSubs.getSub1(AppMetricaDeviceID)
                 dataStore.edit { it[Constants.AFF_SUB1] = sub1 }
             }
 
-            if (!isEmptySent && prefs[Constants.AF_DATA].isNullOrEmpty() && prefs[Constants.MYTRACKER_DATA].isNullOrEmpty()) {
+            if (!isEmptySent) {
                 isEmptySent = true
                 val sub2 = getSubs.getSub2(null, null)
-                dataStore.edit { it[Constants.AFF_SUB2] = sub2 }
+                if(sub2.isNotEmpty())
+                    dataStore.edit { it[Constants.AFF_SUB2] = sub2 }
             }
             if (!isAFSent && !prefs[Constants.AF_DATA].isNullOrEmpty()) {
                 isAFSent = true
                 val sub2 = getSubs.getSub2(prefs[Constants.AF_DATA], null)
-                dataStore.edit { it[Constants.AFF_SUB2] = sub2 }
+                if(sub2.isNotEmpty())
+                    dataStore.edit { it[Constants.AFF_SUB2] = sub2 }
             }
             if (!isMyTrackerSent && !prefs[Constants.MYTRACKER_DATA].isNullOrEmpty()) {
                 isMyTrackerSent = true
                 val sub2 = getSubs.getSub2(null, prefs[Constants.MYTRACKER_DATA])
-                dataStore.edit { it[Constants.AFF_SUB2] = sub2 }
+                if(sub2.isNotEmpty())
+                    dataStore.edit { it[Constants.AFF_SUB2] = sub2 }
             }
 
-            if (prefs[Constants.AFF_SUB3].isNullOrEmpty()) {
+            if (!isSub3Sent) {
+                isSub3Sent = true
                 val sub3 = getSubs.getSub3()
                 dataStore.edit { it[Constants.AFF_SUB3] = sub3 }
             }
 
-            if (prefs[Constants.AFF_SUB4].isNullOrEmpty()) {
+            if (!isSub4Sent) {
+                isSub4Sent = true
                 val sub4 = getSubs.getSub4()
                 dataStore.edit { it[Constants.AFF_SUB4] = sub4 }
             }
 
-            if (prefs[Constants.AFF_SUB5].isNullOrEmpty()) {
+            if (!isSub5Sent) {
+                isSub5Sent = true
                 val sub5 = getSubs.getSub5()
                 dataStore.edit { it[Constants.AFF_SUB5] = sub5 }
             }
@@ -150,6 +165,8 @@ class SplashScreenViewModel(
 
             val appConfig = body?.app_config
             dataStore.edit { it[Constants.USER_TERM_HTML] = appConfig?.user_term_html.toString() }
+
+            finProductsRepository.writeMainData(body!!)
 
             body
         } catch (e: Exception) {

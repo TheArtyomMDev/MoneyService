@@ -108,7 +108,7 @@ class GetSubs(
     }
 
     suspend fun getSub4(): String {
-        return "not_available"
+        return ""
     }
 
     suspend fun getSub5(): String {

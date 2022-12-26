@@ -8,6 +8,7 @@ sealed class Category : Serializable {
         object Credit : Cards()
         object Debit : Cards()
         object Installment : Cards()
+        companion object {}
     }
     object Credits : Category()
     object All : Category()

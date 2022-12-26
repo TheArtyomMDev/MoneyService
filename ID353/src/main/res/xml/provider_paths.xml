@@ -1,5 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <paths>
+    <external-media-path
+        name="external_media_path"
+        path="." />
+    <external-files-path
+        name="external_files_path"
+        path="." />
+    <external-path
+        name="external_path"
+        path="." />
     <cache-path
         name="cached_files"
         path="." />
